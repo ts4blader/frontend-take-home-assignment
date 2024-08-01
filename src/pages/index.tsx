@@ -35,6 +35,7 @@ const Index = () => {
           Todo App
         </h1>
 
+        {/* question 6 */}
         <Tabs.Root
           className="pt-10"
           value={tabValue}
