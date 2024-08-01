@@ -53,7 +53,10 @@ export const CreateTodoForm = () => {
       />
 
       <button
-        type="button"
+        //* question 2
+        type="submit"
+        //* question 1
+        className="rounded-full bg-accent px-5 py-2 text-sm font-bold text-white"
         disabled={isCreatingTodo}
         onClick={() => {
           createTodo({
