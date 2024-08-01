@@ -9,3 +9,6 @@ export const TodoSchema = z.object({
   body: NonEmptyStringSchema,
   status: TodoStatusSchema,
 })
+
+export type TTodo = z.infer<typeof TodoSchema>
+export type TTodoStatus = z.infer<typeof TodoStatusSchema>
