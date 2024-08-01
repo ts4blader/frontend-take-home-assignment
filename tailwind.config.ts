@@ -9,6 +9,8 @@ export default {
       },
     },
     colors: {
+      'accent': '#334155',
+
       'white': '#ffffff',
       'gray-50': '#f8fafc',
       'gray-100': '#f1f5f9',

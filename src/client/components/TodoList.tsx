@@ -1,6 +1,10 @@
-import type { SVGProps } from 'react'
+import type { TTodo, TTodoStatus } from '@/server/api/schemas/todo-schemas'
 
+import { useCallback, type SVGProps } from 'react'
 import * as Checkbox from '@radix-ui/react-checkbox'
+import { useQueryClient } from '@tanstack/react-query'
+import { getQueryKey } from '@trpc/react-query'
+import { useAutoAnimate } from '@formkit/auto-animate/react'
 
 import { api } from '@/utils/client/api'
 
@@ -63,17 +67,96 @@ import { api } from '@/utils/client/api'
  *  - https://auto-animate.formkit.com
  */
 
-export const TodoList = () => {
+type TodoListProps = {
+  statusFilter?: string
+}
+
+export const TodoList = ({ statusFilter }: TodoListProps) => {
+  const [parent] = useAutoAnimate()
+
+  const queryClient = useQueryClient()
+
   const { data: todos = [] } = api.todo.getAll.useQuery({
-    statuses: ['completed', 'pending'],
+    statuses: !statusFilter
+      ? ['completed', 'pending']
+      : [statusFilter as TTodoStatus],
   })
+
+  //* question 3
+  const updateStatus = api.todoStatus.update.useMutation()
+  const handleUpdateStatus = useCallback(
+    async (id: number, status: TTodoStatus) => {
+      await updateStatus.mutateAsync({
+        todoId: id,
+        status: status,
+      })
+
+      // optimistic update
+      const key = getQueryKey(
+        api.todo.getAll,
+        {
+          statuses: ['completed', 'pending'],
+        },
+        'query'
+      )
+
+      queryClient.setQueryData<TTodo[]>(key, (data) => {
+        if (!data) {
+          return []
+        }
+        return data.map((todo) => {
+          if (todo.id === id) {
+            return {
+              ...todo,
+              status: status,
+            }
+          }
+
+          return todo
+        })
+      })
+    },
+    [queryClient, updateStatus]
+  )
+
+  //* question 4
+  const deleteTodo = api.todo.delete.useMutation()
+  const handleDelete = useCallback(
+    async (id: number) => {
+      await deleteTodo.mutateAsync({ id: id })
+
+      // optimistic update
+      const key = getQueryKey(
+        api.todo.getAll,
+        { statuses: ['completed', 'pending'] },
+        'query'
+      )
+
+      queryClient.setQueryData<TTodo[]>(key, (data) => {
+        if (!data) {
+          return []
+        }
+        return data.filter((item) => item.id !== id)
+      })
+    },
+    [queryClient, deleteTodo]
+  )
 
   return (
     <ul className="grid grid-cols-1 gap-y-3">
       {todos.map((todo) => (
         <li key={todo.id}>
-          <div className="flex items-center rounded-12 border border-gray-200 px-4 py-3 shadow-sm">
+          <div
+            ref={parent}
+            data-checked={todo.status === 'completed'}
+            className="flex items-center rounded-12 border border-gray-200 px-4 py-3 shadow-sm data-[checked=true]:bg-[#F8FAFC]"
+          >
             <Checkbox.Root
+              disabled={updateStatus.isLoading}
+              checked={todo.status === 'completed'}
+              onCheckedChange={(e) =>
+                handleUpdateStatus(todo.id, e ? 'completed' : 'pending')
+              }
               id={String(todo.id)}
               className="flex h-6 w-6 items-center justify-center rounded-6 border border-gray-300 focus:border-gray-700 focus:outline-none data-[state=checked]:border-gray-700 data-[state=checked]:bg-gray-700"
             >
@@ -82,9 +165,21 @@ export const TodoList = () => {
               </Checkbox.Indicator>
             </Checkbox.Root>
 
-            <label className="block pl-3 font-medium" htmlFor={String(todo.id)}>
+            <label
+              data-checked={todo.status === 'completed'}
+              className="block pl-3 font-medium data-[checked=true]:line-through"
+              htmlFor={String(todo.id)}
+            >
               {todo.body}
             </label>
+
+            <button
+              disabled={deleteTodo.isLoading}
+              onClick={() => handleDelete(todo.id)}
+              className="ml-auto rounded-6 p-1 focus-visible:ring-1 focus-visible:ring-gray-500"
+            >
+              <XMarkIcon className="h-6 w-6" />
+            </button>
           </div>
         </li>
       ))}
