@@ -77,11 +77,11 @@ to the repo via email to `binhdv@thenowproject.com.vn` and
 
 ## Checklist
 
-- [x] Finish Question 1
-- [x] Finish Question 2
-- [x] Finish Question 3
-- [x] Finish Question 4
-- [x] Finish Question 5
-- [x] Finish Question 6
+- [x] [Finish Question 1](./src/client/components/CreateTodoForm.tsx#58)
+- [x] [Finish Question 2](./src/client/components/CreateTodoForm.tsx#56)
+- [x] [Finish Question 3](./src/client/components/TodoList.tsx#85)
+- [x] [Finish Question 4](./src/client/components/TodoList.tsx#122)
+- [x] [Finish Question 5](./src/client/components/TodoList.tsx#75)
+- [x] [Finish Question 6](./src/pages/index.tsx#38)
 - [x] Run `yarn lint` with no errors
 - [x] Run `yarn type-check` with no errors
